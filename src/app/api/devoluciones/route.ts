@@ -153,7 +153,7 @@ export async function POST(request: Request) {
     };
     
     if (spUserId) {
-      spData.fields.AprobadorLookupId = parseInt(spUserId, 10);
+      spData.fields.AprobadorLookupId = spUserId;
       console.log('Setting AprobadorLookupId to:', spData.fields.AprobadorLookupId);
     } else {
       console.log('spUserId was null or empty, falling back to Observaciones');
