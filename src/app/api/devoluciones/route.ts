@@ -213,7 +213,47 @@ export async function POST(request: Request) {
       }
     }
 
+
+    // 6. Notificar al aprobador via Power Automate
+    const notificationWebhook = process.env.POWER_AUTOMATE_NOTIFICATION_WEBHOOK;
+    if (notificationWebhook && aprobadorEmail) {
+      try {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const approvalLink = `${appUrl}/aprobacion/${itemId}`;
+
+        const valorFormateado = new Intl.NumberFormat('es-CO', {
+          style: 'currency',
+          currency: 'COP',
+          minimumFractionDigits: 0,
+        }).format(valor);
+
+        const notificationPayload = {
+          titulo: `Solicitud de Devolución de Saldo – ${nombreCliente}`,
+          mensaje: `Se ha creado una nueva solicitud de devolución de saldo para el cliente ${nombreCliente} (NIT: ${nitCliente}) por valor de ${valorFormateado}. Por favor revise y apruebe la solicitud haciendo clic en el enlace.`,
+          responsable: aprobadorEmail,
+          link: approvalLink,
+        };
+
+        console.log('Enviando notificación al aprobador:', aprobadorEmail);
+
+        const notifRes = await fetch(notificationWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(notificationPayload),
+        });
+
+        if (notifRes.ok) {
+          console.log('Notificación enviada exitosamente al aprobador:', aprobadorEmail);
+        } else {
+          console.error('Error enviando notificación:', await notifRes.text());
+        }
+      } catch (notifErr) {
+        console.error('Error en notificación al aprobador:', notifErr);
+      }
+    }
+
     return NextResponse.json({ success: true, id: itemId });
+
   } catch (error) {
     console.error('Submit Error:', error);
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
