@@ -75,8 +75,15 @@ export async function GET(
     const fields = data.fields;
 
     const observacionesRaw: string = fields.Observaciones || '';
-    // Strip attachment URLs section to show clean observaciones
+    
+    // Parse decision from appended text
+    const decisionMatch = observacionesRaw.match(/(?:✅ APROBADO|❌ RECHAZADO) el (.*?)(?:\nMotivo: ([\s\S]*))?$/);
+    const parsedFecha = decisionMatch ? decisionMatch[1].trim() : null;
+    const parsedMotivo = decisionMatch && decisionMatch[2] ? decisionMatch[2].trim() : '';
+
+    // Strip attachment URLs and decision sections to show clean observaciones
     const observacionesClean = observacionesRaw
+      .replace(/\n\n(?:✅ APROBADO|❌ RECHAZADO) el [\s\S]*$/, '')
       .replace(/\n\nDocumentos adjuntos:[\s\S]*$/, '')
       .replace(/\n\nAprobador Seleccionado:[\s\S]*$/, '')
       .trim();
@@ -91,8 +98,8 @@ export async function GET(
       empresa: fields.Compa_x00f1_ia || '',
       observaciones: observacionesClean,
       estado: fields.Estado || 'pendiente',
-      fechaDecision: fields.FechaDecision || null,
-      motivoRechazo: fields.MotivoRechazo || '',
+      fechaDecision: parsedFecha,
+      motivoRechazo: parsedMotivo,
       attachments,
       createdAt: data.createdDateTime,
       modifiedAt: data.lastModifiedDateTime,

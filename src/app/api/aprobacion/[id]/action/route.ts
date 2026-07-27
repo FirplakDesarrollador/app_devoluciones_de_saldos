@@ -56,18 +56,25 @@ export async function POST(
       return NextResponse.json({ error: 'Solicitud no encontrada' }, { status: 404 });
     }
 
+    const itemData = await itemRes.json();
+    const currentObservaciones: string = itemData.fields?.Observaciones || '';
+
     // 2. Build fields to update
-    const nowIso = new Date().toISOString();
+    const timestamp = new Date().toLocaleString('es-CO', {
+      dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Bogota',
+    });
     const estado = accion === 'aprobar' ? 'Aprovado' : 'Rechazado';
+
+    const decisionText = accion === 'aprobar'
+      ? `\n\n✅ APROBADO el ${timestamp}`
+      : `\n\n❌ RECHAZADO el ${timestamp}\nMotivo: ${razon}`;
+
+    const newObservaciones = currentObservaciones + decisionText;
 
     const updatedFields: Record<string, string> = {
       Estado: estado,
-      FechaDecision: nowIso,
+      Observaciones: newObservaciones,
     };
-
-    if (accion === 'rechazar' && razon) {
-      updatedFields.MotivoRechazo = razon.trim();
-    }
 
     // 3. PATCH the SharePoint item with decision fields
     const patchRes = await fetch(

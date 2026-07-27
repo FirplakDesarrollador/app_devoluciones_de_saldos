@@ -149,7 +149,9 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
   if (isFinalized && finalDecision) {
     const isApproved = finalDecision === 'aprobado';
     const finalReason = actionState === 'success' ? razonRechazo : item.motivoRechazo;
-    const finalDate = actionState === 'success' ? new Date().toISOString() : item.fechaDecision;
+    const finalDateString = actionState === 'success' 
+      ? new Date().toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Bogota' }) 
+      : item.fechaDecision;
 
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -179,7 +181,7 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
             )}
             <p className="text-xs text-slate-400 mt-4">
               ID: {item.id} · {item.nombreCliente}
-              {finalDate && <><br/>Procesado el: {formatDate(finalDate)}</>}
+              {finalDateString && <><br/>Procesado el: {finalDateString}</>}
             </p>
           </div>
         </div>
