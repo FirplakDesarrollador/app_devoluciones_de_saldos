@@ -58,7 +58,7 @@ export async function POST(
 
     // 2. Build fields to update
     const nowIso = new Date().toISOString();
-    const estado = accion === 'aprobar' ? 'Aprobado' : 'Rechazado';
+    const estado = accion === 'aprobar' ? 'Aprovado' : 'Rechazado';
 
     const updatedFields: Record<string, string> = {
       Estado: estado,

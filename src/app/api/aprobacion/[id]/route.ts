@@ -90,7 +90,7 @@ export async function GET(
       valor: fields.Valor || 0,
       empresa: fields.Compa_x00f1_ia || '',
       observaciones: observacionesClean,
-      estado: fields.Estado || 'Pendiente',
+      estado: fields.Estado || 'pendiente',
       fechaDecision: fields.FechaDecision || null,
       motivoRechazo: fields.MotivoRechazo || '',
       attachments,

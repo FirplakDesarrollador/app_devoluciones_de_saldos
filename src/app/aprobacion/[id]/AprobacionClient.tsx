@@ -142,8 +142,8 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
   };
 
   // Determinar si ya fue procesada previamente o en esta sesión
-  const isFinalized = (item.estado && item.estado !== 'Pendiente') || actionState === 'success';
-  const finalDecision = actionState === 'success' ? decision : (item.estado === 'Aprobado' ? 'aprobado' : 'rechazado');
+  const isFinalized = (item.estado && item.estado !== 'pendiente') || actionState === 'success';
+  const finalDecision = actionState === 'success' ? decision : (item.estado === 'Aprovado' ? 'aprobado' : 'rechazado');
 
   // Success / final state
   if (isFinalized && finalDecision) {
