@@ -367,7 +367,7 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
 
                 {/* Document content */}
                 <div className="p-3">
-                  <DocumentPreview attachment={currentDoc} />
+                  <DocumentPreview key={currentDoc.url} attachment={currentDoc} />
                 </div>
               </div>
             </>
