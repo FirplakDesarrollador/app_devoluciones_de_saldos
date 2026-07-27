@@ -34,7 +34,11 @@ export async function POST(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { accion, razon } = body as { accion: 'aprobar' | 'rechazar'; razon?: string };
+    const { accion, razon, valorAutorizado } = body as { 
+      accion: 'aprobar' | 'rechazar'; 
+      razon?: string;
+      valorAutorizado?: number;
+    };
 
     if (!accion || !['aprobar', 'rechazar'].includes(accion)) {
       return NextResponse.json({ error: 'Acción inválida' }, { status: 400 });
@@ -66,15 +70,23 @@ export async function POST(
     const estado = accion === 'aprobar' ? 'Aprovado' : 'Rechazado';
 
     const decisionText = accion === 'aprobar'
-      ? `\n\n✅ APROBADO el ${timestamp}`
-      : `\n\n❌ RECHAZADO el ${timestamp}\nMotivo: ${razon}`;
+      ? `\n\n✅ APROBADO el ${timestamp}${valorAutorizado !== undefined ? ` por un valor de $${valorAutorizado}` : ''}`
+      : `\n\n❌ RECHAZADO el ${timestamp}`;
 
     const newObservaciones = currentObservaciones + decisionText;
 
-    const updatedFields: Record<string, string> = {
+    const updatedFields: Record<string, any> = {
       Estado: estado,
       Observaciones: newObservaciones,
     };
+
+    if (accion === 'aprobar' && valorAutorizado !== undefined) {
+      updatedFields.Valor_autorizado = valorAutorizado;
+    }
+
+    if (accion === 'rechazar' && razon) {
+      updatedFields.observaciones_rechazo = razon.trim();
+    }
 
     // 3. PATCH the SharePoint item with decision fields
     const patchRes = await fetch(

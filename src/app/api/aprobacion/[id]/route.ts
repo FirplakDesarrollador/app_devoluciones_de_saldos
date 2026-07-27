@@ -95,6 +95,7 @@ export async function GET(
       nit: fields.Title || '',
       nombreCliente: fields.NombredelCliente || '',
       valor: fields.Valor || 0,
+      valorAutorizado: fields.Valor_autorizado,
       empresa: fields.Compa_x00f1_ia || '',
       observaciones: observacionesClean,
       estado: fields.Estado || 'pendiente',

@@ -14,6 +14,7 @@ interface ItemData {
   nit: string;
   nombreCliente: string;
   valor: number;
+  valorAutorizado?: number;
   empresa: string;
   observaciones: string;
   estado?: string;
@@ -107,6 +108,7 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
   const [showAprobar, setShowAprobar] = useState(false);
   const [showRechazar, setShowRechazar] = useState(false);
   const [razonRechazo, setRazonRechazo] = useState('');
+  const [valorAutorizado, setValorAutorizado] = useState(item.valor);
   const [actionState, setActionState] = useState<ActionState>('idle');
   const [decision, setDecision] = useState<'aprobado' | 'rechazado' | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
@@ -123,6 +125,7 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
         body: JSON.stringify({
           accion,
           razon: accion === 'rechazar' ? razonRechazo : undefined,
+          valorAutorizado: accion === 'aprobar' ? Number(valorAutorizado) : undefined,
         }),
       });
 
@@ -177,6 +180,11 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
             {!isApproved && finalReason && (
               <div className="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 text-left">
                 <strong>Motivo:</strong> {finalReason}
+              </div>
+            )}
+            {isApproved && item.valorAutorizado !== undefined && (
+              <div className="mt-4 p-3 bg-emerald-50 text-emerald-700 text-sm rounded-lg border border-emerald-100 text-center">
+                <strong>Valor Autorizado:</strong> {formatCOP(item.valorAutorizado)}
               </div>
             )}
             <p className="text-xs text-slate-400 mt-4">
@@ -403,9 +411,26 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
               <CheckCircle2 size={28} className="text-emerald-500" />
             </div>
             <h2 className="text-lg font-bold text-slate-800 text-center mb-2">¿Aprobar solicitud?</h2>
-            <p className="text-sm text-slate-500 text-center mb-6">
-              Estás a punto de aprobar la solicitud de <strong>{item.nombreCliente}</strong> por <strong>{formatCOP(item.valor)}</strong>.
+            <p className="text-sm text-slate-500 text-center mb-4">
+              Estás a punto de aprobar la solicitud de <strong>{item.nombreCliente}</strong>.
             </p>
+            
+            <div className="mb-6">
+              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
+                Valor Autorizado
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
+                <input 
+                  type="number"
+                  value={valorAutorizado}
+                  onChange={e => setValorAutorizado(Number(e.target.value))}
+                  className="w-full border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                />
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">Valor original solicitado: {formatCOP(item.valor)}</p>
+            </div>
+
             <div className="flex gap-3">
               <button
                 onClick={() => setShowAprobar(false)}
