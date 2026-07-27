@@ -125,7 +125,7 @@ export async function POST(
         if (accion === 'aprobar') {
           titulo = `Su solicitud, ${nombreCliente} fue aprobada`;
           const valFormat = valorAutorizado ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valorAutorizado) : '';
-          mensaje = `Nos complace informarle que su solicitud de devolución de saldo ha sido aprobada exitosamente${valFormat ? ` por un valor autorizado de ${valFormat}` : ''}. El pago será procesado y transferido a su cuenta bancaria registrada en los próximos días hábiles.`;
+          mensaje = `Nos complace informarle que su solicitud de devolución de saldo ha sido aprobada exitosamente${valFormat ? ` por un valor autorizado de ${valFormat}` : ''}. El pago será procesado y transferido en el perido de tiempo establecido por el area financiera.`;
         } else {
           titulo = `Su solicitud, ${nombreCliente} fue rechazada`;
           mensaje = `Le informamos que su solicitud de devolución de saldo ha sido rechazada por el siguiente motivo:\n\n"${razon}"\n\nSi tiene alguna duda o requiere mayor información, por favor póngase en contacto con nuestro equipo de cartera.`;
