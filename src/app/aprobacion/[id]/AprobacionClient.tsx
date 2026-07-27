@@ -25,7 +25,7 @@ interface ItemData {
 }
 
 const TIPO_LABELS: Record<string, string> = {
-  cedula: 'Cédula',
+  cedula: 'Cédula / RUT',
   certificacion: 'Cert. bancaria',
   soporte: 'Soporte de pago',
   carta: 'Carta de solicitud',

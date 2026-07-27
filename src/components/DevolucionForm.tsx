@@ -210,7 +210,7 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
 
       <div className="space-y-1">
         <label htmlFor="nitCliente" className="block text-blue-900 font-medium text-sm">
-          Nit o Cédula Cliente
+          {tipoPersona === 'juridica' ? 'NIT Cliente' : (tipoPersona === 'natural' ? 'Cédula Cliente' : 'Nit o Cédula Cliente')}
         </label>
         <input
           type="text"
@@ -364,7 +364,7 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
           </label>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {renderFileBox('1. Copia de la cédula', 'archivo_cedula', fileCedula, setFileCedula)}
+            {renderFileBox(tipoPersona === 'juridica' ? '1. Copia del RUT' : '1. Copia de la cédula', 'archivo_cedula', fileCedula, setFileCedula)}
             {renderFileBox('2. Certificación bancaria', 'archivo_certificacion', fileCertificacion, setFileCertificacion)}
             {renderFileBox('3. Soporte de pago', 'archivo_soporte', fileSoporte, setFileSoporte)}
             {renderFileBox('4. Carta de solicitud', 'archivo_carta', fileCarta, setFileCarta)}
