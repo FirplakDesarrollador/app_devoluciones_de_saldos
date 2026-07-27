@@ -16,6 +16,9 @@ interface ItemData {
   valor: number;
   empresa: string;
   observaciones: string;
+  estado?: string;
+  fechaDecision?: string;
+  motivoRechazo?: string;
   attachments: Attachment[];
   createdAt: string;
 }
@@ -138,9 +141,16 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
     }
   };
 
+  // Determinar si ya fue procesada previamente o en esta sesión
+  const isFinalized = (item.estado && item.estado !== 'Pendiente') || actionState === 'success';
+  const finalDecision = actionState === 'success' ? decision : (item.estado === 'Aprobado' ? 'aprobado' : 'rechazado');
+
   // Success / final state
-  if (actionState === 'success' && decision) {
-    const isApproved = decision === 'aprobado';
+  if (isFinalized && finalDecision) {
+    const isApproved = finalDecision === 'aprobado';
+    const finalReason = actionState === 'success' ? razonRechazo : item.motivoRechazo;
+    const finalDate = actionState === 'success' ? new Date().toISOString() : item.fechaDecision;
+
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col">
         <header className="bg-blue-900 text-white px-6 py-4">
@@ -159,10 +169,18 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
             </h2>
             <p className="text-slate-500 text-sm">
               {isApproved
-                ? 'La solicitud de devolución ha sido aprobada exitosamente. Se notificará al equipo responsable.'
-                : 'La solicitud ha sido rechazada. Se notificará al equipo responsable.'}
+                ? 'La solicitud de devolución ha sido aprobada.'
+                : 'La solicitud ha sido rechazada.'}
             </p>
-            <p className="text-xs text-slate-400 mt-4">ID: {item.id} · {item.nombreCliente}</p>
+            {!isApproved && finalReason && (
+              <div className="mt-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-100 text-left">
+                <strong>Motivo:</strong> {finalReason}
+              </div>
+            )}
+            <p className="text-xs text-slate-400 mt-4">
+              ID: {item.id} · {item.nombreCliente}
+              {finalDate && <><br/>Procesado el: {formatDate(finalDate)}</>}
+            </p>
           </div>
         </div>
       </div>

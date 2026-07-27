@@ -56,21 +56,20 @@ export async function POST(
       return NextResponse.json({ error: 'Solicitud no encontrada' }, { status: 404 });
     }
 
-    const itemData = await itemRes.json();
-    const currentObservaciones: string = itemData.fields?.Observaciones || '';
+    // 2. Build fields to update
+    const nowIso = new Date().toISOString();
+    const estado = accion === 'aprobar' ? 'Aprobado' : 'Rechazado';
 
-    // 2. Build decision entry
-    const timestamp = new Date().toLocaleString('es-CO', {
-      dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Bogota',
-    });
+    const updatedFields: Record<string, string> = {
+      Estado: estado,
+      FechaDecision: nowIso,
+    };
 
-    const decisionText = accion === 'aprobar'
-      ? `\n\n✅ APROBADO el ${timestamp}`
-      : `\n\n❌ RECHAZADO el ${timestamp}\nMotivo: ${razon}`;
+    if (accion === 'rechazar' && razon) {
+      updatedFields.MotivoRechazo = razon.trim();
+    }
 
-    const newObservaciones = currentObservaciones + decisionText;
-
-    // 3. PATCH the SharePoint item with updated Observaciones
+    // 3. PATCH the SharePoint item with decision fields
     const patchRes = await fetch(
       `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${listId}/items/${id}/fields`,
       {
@@ -79,7 +78,7 @@ export async function POST(
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ Observaciones: newObservaciones }),
+        body: JSON.stringify(updatedFields),
       }
     );
 
@@ -89,9 +88,9 @@ export async function POST(
       return NextResponse.json({ error: 'Error al actualizar el estado en SharePoint' }, { status: 500 });
     }
 
-    console.log(`Solicitud ${id} ${accion === 'aprobar' ? 'APROBADA' : 'RECHAZADA'}`);
+    console.log(`Solicitud ${id} ${estado.toUpperCase()} en SharePoint`);
 
-    return NextResponse.json({ success: true, accion });
+    return NextResponse.json({ success: true, accion, estado });
   } catch (error) {
     console.error('Error en /api/aprobacion/[id]/action:', error);
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 });

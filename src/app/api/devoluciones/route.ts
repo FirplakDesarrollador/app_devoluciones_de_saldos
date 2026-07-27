@@ -151,6 +151,7 @@ export async function POST(request: Request) {
         Valor: valor,
         Observaciones: finalObservaciones,
         Compa_x00f1_ia: empresa,
+        Estado: 'Pendiente',
       } as Record<string, any>
     };
     
