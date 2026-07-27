@@ -187,7 +187,9 @@ export async function POST(request: Request) {
           id_elemento: String(itemId),
           archivos: fileUrls.map(f => ({
             nombre: f.nombre,
-            url: f.url
+            url: f.url,
+            base64: f.base64,
+            mime: f.mime
           }))
         };
         
