@@ -58,9 +58,13 @@ export async function GET() {
       .filter((u: any) => {
         if (!u.displayName) return false;
         const name = u.displayName.toLowerCase();
+        const email = (u.mail || '').toLowerCase();
         return name.includes('andres naranjo') || 
                name.includes('andrés naranjo') || 
-               name.includes('ider');
+               name.includes('ider') ||
+               name.includes('esteban muñoz') ||
+               name.includes('esteban munoz') ||
+               email.includes('analista2.desarrollo');
       })
       .map((u: any) => ({
         id: u.id,
