@@ -12,6 +12,8 @@ export async function POST(request: Request) {
     const valorStr = formData.get('valor') as string;
     const aprobadorId = formData.get('aprobador') as string;
     const aprobadorEmail = formData.get('aprobadorEmail') as string;
+    const solicitanteNombre = formData.get('solicitanteNombre') as string;
+    const solicitanteEmail = formData.get('solicitanteEmail') as string;
     const aprobadorNombre = formData.get('aprobadorNombre') as string;
     const observacionesForm = formData.get('observaciones') as string || '';
     const empresa = formData.get('empresa') as string || '';
@@ -131,7 +133,7 @@ export async function POST(request: Request) {
     }
 
     // Prepare Observaciones (fallback to appending Aprobador if SP ID not found)
-    let finalObservaciones = observacionesForm;
+    let finalObservaciones = `${observacionesForm}\n\nSolicitante: ${solicitanteNombre} (${solicitanteEmail})`;
     
     if (!spUserId && aprobadorNombre) {
       finalObservaciones += `\n\nAprobador Seleccionado: ${aprobadorNombre} (${aprobadorEmail})`;

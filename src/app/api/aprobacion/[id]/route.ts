@@ -86,6 +86,7 @@ export async function GET(
       .replace(/\n\n(?:✅ APROBADO|❌ RECHAZADO) el [\s\S]*$/, '')
       .replace(/\n\nDocumentos adjuntos:[\s\S]*$/, '')
       .replace(/\n\nAprobador Seleccionado:[\s\S]*$/, '')
+      .replace(/\n\nSolicitante: .*?\([^)]+\)/g, '')
       .trim();
 
     const attachments = parseAttachments(observacionesRaw);

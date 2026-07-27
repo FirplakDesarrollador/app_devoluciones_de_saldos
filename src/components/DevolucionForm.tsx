@@ -21,14 +21,21 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
   const [fileSoporte, setFileSoporte] = useState<File | null>(null);
   const [fileCarta, setFileCarta] = useState<File | null>(null);
   
-  // Combobox state
+  // Combobox state - Aprobador
   const [approvers, setApprovers] = useState<Approver[]>([]);
   const [loadingApprovers, setLoadingApprovers] = useState(true);
+  
   const [comboboxOpen, setComboboxOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedApproverId, setSelectedApproverId] = useState<string>('');
   
   const comboboxRef = useRef<HTMLDivElement>(null);
+
+  // Combobox state - Solicitante
+  const [solicitanteOpen, setSolicitanteOpen] = useState(false);
+  const [solicitanteSearch, setSolicitanteSearch] = useState('');
+  const [selectedSolicitanteId, setSelectedSolicitanteId] = useState<string>('');
+  const solicitanteRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchApprovers = async () => {
@@ -47,11 +54,14 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
     fetchApprovers();
   }, []);
 
-  // Close combobox when clicking outside
+  // Close comboboxes when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (comboboxRef.current && !comboboxRef.current.contains(event.target as Node)) {
         setComboboxOpen(false);
+      }
+      if (solicitanteRef.current && !solicitanteRef.current.contains(event.target as Node)) {
+        setSolicitanteOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -63,7 +73,13 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
     a.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const filteredSolicitantes = approvers.filter((a) =>
+    a.name.toLowerCase().includes(solicitanteSearch.toLowerCase()) ||
+    a.email.toLowerCase().includes(solicitanteSearch.toLowerCase())
+  );
+
   const selectedApprover = approvers.find(a => a.id === selectedApproverId);
+  const selectedSolicitante = approvers.find(a => a.id === selectedSolicitanteId);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -96,6 +112,7 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
       formElement.reset();
       setTipoPersona('');
       setSelectedApproverId('');
+      setSelectedSolicitanteId('');
       setFileCedula(null);
       setFileCertificacion(null);
       setFileSoporte(null);
@@ -219,6 +236,102 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
           required
           className="w-full border border-blue-900 p-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-sm"
         />
+      </div>
+
+      {/* Solicitante con Combobox */}
+      <div className="space-y-1 relative" ref={solicitanteRef}>
+        <label className="block text-blue-900 font-medium text-sm">
+          Solicitante
+        </label>
+        
+        <input type="hidden" name="solicitanteId" value={selectedSolicitanteId} required />
+        <input type="hidden" name="solicitanteEmail" value={selectedSolicitante?.email || ''} />
+        <input type="hidden" name="solicitanteNombre" value={selectedSolicitante?.name || ''} />
+        
+        <div 
+          className={`w-full border border-blue-900 p-2 text-slate-800 flex items-center justify-between cursor-pointer rounded-sm bg-white ${loadingApprovers ? 'opacity-70 cursor-not-allowed' : ''}`}
+          onClick={() => !loadingApprovers && setSolicitanteOpen(!solicitanteOpen)}
+        >
+          {selectedSolicitante ? (
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-200 flex-shrink-0 flex items-center justify-center text-xs font-bold text-slate-500 relative">
+                <span className="absolute">{selectedSolicitante.name.charAt(0)}</span>
+                <Image
+                  src={`/api/users/${selectedSolicitante.id}/photo`}
+                  alt={selectedSolicitante.name}
+                  fill
+                  sizes="24px"
+                  className="object-cover relative z-10"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+              <span className="truncate">{selectedSolicitante.name}</span>
+            </div>
+          ) : (
+            <span className="text-slate-500">
+              {loadingApprovers ? 'Cargando usuarios...' : 'Seleccione el solicitante'}
+            </span>
+          )}
+          <ChevronDown size={16} className={`text-slate-500 transition-transform ${solicitanteOpen ? 'rotate-180' : ''}`} />
+        </div>
+
+        {solicitanteOpen && (
+          <div className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-100 p-2 flex items-center gap-2 z-20">
+              <Search size={16} className="text-slate-400" />
+              <input
+                type="text"
+                placeholder="Buscar solicitante..."
+                className="w-full focus:outline-none text-sm text-slate-700"
+                value={solicitanteSearch}
+                onChange={(e) => setSolicitanteSearch(e.target.value)}
+                onClick={(e) => e.stopPropagation()}
+                autoFocus
+              />
+            </div>
+            
+            <div className="p-1 relative z-10">
+              {filteredSolicitantes.length === 0 ? (
+                <div className="p-3 text-sm text-slate-500 text-center">No se encontraron resultados</div>
+              ) : (
+                filteredSolicitantes.map((a) => (
+                  <div
+                    key={a.id}
+                    className={`flex items-center gap-3 p-2 hover:bg-blue-50 cursor-pointer rounded-sm ${selectedSolicitanteId === a.id ? 'bg-blue-50' : ''}`}
+                    onClick={() => {
+                      setSelectedSolicitanteId(a.id);
+                      setSolicitanteOpen(false);
+                      setSolicitanteSearch('');
+                    }}
+                  >
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 flex-shrink-0 flex items-center justify-center text-sm font-bold text-slate-500 relative">
+                      <span className="absolute">{a.name.charAt(0)}</span>
+                      <Image
+                        src={`/api/users/${a.id}/photo`}
+                        alt={a.name}
+                        fill
+                        sizes="32px"
+                        className="object-cover relative z-10"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </div>
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="text-sm font-medium text-slate-800 truncate">{a.name}</span>
+                      {a.email && <span className="text-xs text-slate-500 truncate">{a.email}</span>}
+                    </div>
+                    {selectedSolicitanteId === a.id && (
+                      <Check size={16} className="text-blue-600 flex-shrink-0" />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Aprobador con Combobox */}

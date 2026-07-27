@@ -115,6 +115,10 @@ export async function POST(
       try {
         const nombreCliente = itemData.fields?.NombredelCliente || 'Cliente';
         
+        // Extraer email del solicitante de las observaciones
+        const solicitanteMatch = currentObservaciones.match(/Solicitante: .*?\((.*?)\)/);
+        const solicitanteEmail = solicitanteMatch ? solicitanteMatch[1].trim() : nombreCliente;
+
         let titulo = '';
         let mensaje = '';
 
@@ -129,7 +133,7 @@ export async function POST(
 
         const payload = {
           titulo,
-          solicitante: nombreCliente,
+          solicitante: solicitanteEmail,
           mensaje,
         };
 
