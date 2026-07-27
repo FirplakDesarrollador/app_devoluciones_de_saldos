@@ -109,6 +109,44 @@ export async function POST(
 
     console.log(`Solicitud ${id} ${estado.toUpperCase()} en SharePoint`);
 
+    // 4. Notificar a Power Automate sobre la decisión
+    const decisionWebhook = process.env.POWER_AUTOMATE_DECISION_WEBHOOK;
+    if (decisionWebhook) {
+      try {
+        const nombreCliente = itemData.fields?.NombredelCliente || 'Cliente';
+        
+        let titulo = '';
+        let mensaje = '';
+
+        if (accion === 'aprobar') {
+          titulo = `Su solicitud, ${nombreCliente} fue aprobada`;
+          const valFormat = valorAutorizado ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valorAutorizado) : '';
+          mensaje = `Nos complace informarle que su solicitud de devolución de saldo ha sido aprobada exitosamente${valFormat ? ` por un valor autorizado de ${valFormat}` : ''}. El pago será procesado y transferido a su cuenta bancaria registrada en los próximos días hábiles.`;
+        } else {
+          titulo = `Su solicitud, ${nombreCliente} fue rechazada`;
+          mensaje = `Le informamos que su solicitud de devolución de saldo ha sido rechazada por el siguiente motivo:\n\n"${razon}"\n\nSi tiene alguna duda o requiere mayor información, por favor póngase en contacto con nuestro equipo de cartera.`;
+        }
+
+        const payload = {
+          titulo,
+          solicitante: nombreCliente,
+          mensaje,
+        };
+
+        const paRes = await fetch(decisionWebhook, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!paRes.ok) {
+          console.error('Error enviando notificación de decisión a Power Automate:', await paRes.text());
+        }
+      } catch (e) {
+        console.error('Error al notificar decisión:', e);
+      }
+    }
+
     return NextResponse.json({ success: true, accion, estado });
   } catch (error) {
     console.error('Error en /api/aprobacion/[id]/action:', error);
