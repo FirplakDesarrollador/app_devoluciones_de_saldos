@@ -37,21 +37,27 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
   const [selectedSolicitanteId, setSelectedSolicitanteId] = useState<string>('');
   const solicitanteRef = useRef<HTMLDivElement>(null);
 
+  const [solicitantes, setSolicitantes] = useState<Approver[]>([]);
+  const [loadingSolicitantes, setLoadingSolicitantes] = useState(true);
+
   useEffect(() => {
-    const fetchApprovers = async () => {
+    const fetchUsers = async () => {
       try {
-        const res = await fetch('/api/users');
-        if (res.ok) {
-          const data = await res.json();
-          setApprovers(data);
-        }
+        const [resApprovers, resSolicitantes] = await Promise.all([
+          fetch('/api/users'),
+          fetch('/api/users?all=true')
+        ]);
+        
+        if (resApprovers.ok) setApprovers(await resApprovers.json());
+        if (resSolicitantes.ok) setSolicitantes(await resSolicitantes.json());
       } catch (err) {
         console.error(err);
       } finally {
         setLoadingApprovers(false);
+        setLoadingSolicitantes(false);
       }
     };
-    fetchApprovers();
+    fetchUsers();
   }, []);
 
   // Close comboboxes when clicking outside
@@ -73,13 +79,13 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
     a.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredSolicitantes = approvers.filter((a) =>
+  const filteredSolicitantes = solicitantes.filter((a) =>
     a.name.toLowerCase().includes(solicitanteSearch.toLowerCase()) ||
     a.email.toLowerCase().includes(solicitanteSearch.toLowerCase())
   );
 
   const selectedApprover = approvers.find(a => a.id === selectedApproverId);
-  const selectedSolicitante = approvers.find(a => a.id === selectedSolicitanteId);
+  const selectedSolicitante = solicitantes.find(a => a.id === selectedSolicitanteId);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -249,8 +255,8 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
         <input type="hidden" name="solicitanteNombre" value={selectedSolicitante?.name || ''} />
         
         <div 
-          className={`w-full border border-blue-900 p-2 text-slate-800 flex items-center justify-between cursor-pointer rounded-sm bg-white ${loadingApprovers ? 'opacity-70 cursor-not-allowed' : ''}`}
-          onClick={() => !loadingApprovers && setSolicitanteOpen(!solicitanteOpen)}
+          className={`w-full border border-blue-900 p-2 text-slate-800 flex items-center justify-between cursor-pointer rounded-sm bg-white ${loadingSolicitantes ? 'opacity-70 cursor-not-allowed' : ''}`}
+          onClick={() => !loadingSolicitantes && setSolicitanteOpen(!solicitanteOpen)}
         >
           {selectedSolicitante ? (
             <div className="flex items-center gap-3">
@@ -271,7 +277,7 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
             </div>
           ) : (
             <span className="text-slate-500">
-              {loadingApprovers ? 'Cargando usuarios...' : 'Seleccione el solicitante'}
+              {loadingSolicitantes ? 'Cargando usuarios...' : 'Seleccione el solicitante'}
             </span>
           )}
           <ChevronDown size={16} className={`text-slate-500 transition-transform ${solicitanteOpen ? 'rotate-180' : ''}`} />

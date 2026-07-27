@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const tenantId = process.env.AZURE_TENANT_ID;
     const clientId = process.env.AZURE_CLIENT_ID;
@@ -53,10 +53,16 @@ export async function GET() {
 
     const usersData = await usersResponse.json();
     
-    // Map and filter users to only include Andres Naranjo and Ider
+    const searchParams = request.nextUrl.searchParams;
+    const fetchAll = searchParams.get('all') === 'true';
+
+    // Map and filter users to only include Andres Naranjo and Ider (unless fetchAll is true)
     const approvers = usersData.value
       .filter((u: any) => {
         if (!u.displayName) return false;
+        
+        if (fetchAll) return true; // Mostrar todo el tenant si all=true
+
         const name = u.displayName.toLowerCase();
         const email = (u.mail || '').toLowerCase();
         return name.includes('andres naranjo') || 
