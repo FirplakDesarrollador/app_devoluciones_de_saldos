@@ -241,17 +241,30 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
           </div>
 
           {/* Valor */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="px-5 py-3 border-b border-slate-100 flex items-center gap-2">
-              <div className="w-7 h-7 bg-emerald-50 rounded-lg flex items-center justify-center">
-                <DollarSign size={14} className="text-emerald-600" />
-              </div>
-              <span className="font-semibold text-slate-700 text-sm">Valor Solicitado</span>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <div className="flex items-center gap-2 text-emerald-600 font-semibold mb-3 text-sm">
+              <DollarSign size={18} /> Valor Solicitado
             </div>
-            <div className="px-5 py-4">
-              <p className="text-2xl font-extrabold text-emerald-600">{formatCOP(item.valor)}</p>
-              <p className="text-xs text-slate-400 mt-1">Devolución de saldo a favor</p>
+            <div className="text-3xl font-black text-slate-800 mb-1">
+              {formatCOP(item.valor)}
             </div>
+            <p className="text-xs text-slate-500">Devolución de saldo a favor</p>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <div className="flex items-center gap-2 text-emerald-600 font-semibold mb-3 text-sm">
+              <DollarSign size={18} /> Valor a Autorizar
+            </div>
+            <div className="relative mt-2">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold">$</span>
+              <input 
+                type="number"
+                value={valorAutorizado}
+                onChange={e => setValorAutorizado(Number(e.target.value))}
+                className="w-full border-2 border-emerald-100 rounded-xl pl-8 pr-3 py-3 text-emerald-800 font-bold text-xl focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent bg-emerald-50/30"
+              />
+            </div>
+            <p className="text-[11px] text-slate-500 mt-2">Edita este campo si el valor a autorizar es diferente al solicitado.</p>
           </div>
 
           {/* Empresa y fecha */}
@@ -411,25 +424,9 @@ export default function AprobacionClient({ item }: { item: ItemData }) {
               <CheckCircle2 size={28} className="text-emerald-500" />
             </div>
             <h2 className="text-lg font-bold text-slate-800 text-center mb-2">¿Aprobar solicitud?</h2>
-            <p className="text-sm text-slate-500 text-center mb-4">
-              Estás a punto de aprobar la solicitud de <strong>{item.nombreCliente}</strong>.
+            <p className="text-sm text-slate-500 text-center mb-6">
+              Estás a punto de aprobar la solicitud de <strong>{item.nombreCliente}</strong> por un valor de <strong>{formatCOP(valorAutorizado)}</strong>.
             </p>
-            
-            <div className="mb-6">
-              <label className="block text-xs font-semibold text-slate-600 mb-1.5 uppercase tracking-wide">
-                Valor Autorizado
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">$</span>
-                <input 
-                  type="number"
-                  value={valorAutorizado}
-                  onChange={e => setValorAutorizado(Number(e.target.value))}
-                  className="w-full border border-slate-200 rounded-xl pl-8 pr-3 py-2.5 text-slate-700 font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                />
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1">Valor original solicitado: {formatCOP(item.valor)}</p>
-            </div>
 
             <div className="flex gap-3">
               <button
