@@ -67,10 +67,7 @@ export async function GET(request: NextRequest) {
         const email = (u.mail || '').toLowerCase();
         return name.includes('andres naranjo') || 
                name.includes('andrés naranjo') || 
-               name.includes('ider') ||
-               name.includes('esteban muñoz') ||
-               name.includes('esteban munoz') ||
-               email.includes('analista2.desarrollo');
+               name.includes('daniela castro');
       })
       .map((u: any) => ({
         id: u.id,

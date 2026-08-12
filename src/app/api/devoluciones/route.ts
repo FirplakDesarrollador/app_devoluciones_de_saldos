@@ -103,9 +103,7 @@ export async function POST(request: Request) {
     const nameLower = (aprobadorNombre || '').toLowerCase();
     const emailLower = (aprobadorEmail || '').toLowerCase();
 
-    if (nameLower.includes('ider') || emailLower.includes('alejandro.sandoval')) {
-      spUserId = 115;
-    } else if (nameLower.includes('andres naranjo') || nameLower.includes('andrés naranjo') || emailLower.includes('cartera2')) {
+    if (nameLower.includes('andres naranjo') || nameLower.includes('andrés naranjo') || emailLower.includes('cartera2')) {
       spUserId = 56;
     }
     // Esteban Muñoz Garcia - se resuelve dinámicamente por email si no tiene ID hardcodeado
