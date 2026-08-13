@@ -216,7 +216,7 @@ export async function POST(request: Request) {
 
 
     // 6. Notificar al aprobador via Power Automate
-    const notificationWebhook = process.env.POWER_AUTOMATE_NOTIFICATION_WEBHOOK;
+    const notificationWebhook = process.env.POWER_AUTOMATE_NOTIFICATION_WEBHOOK || "https://8c18912a4169ec67aa9b39bdfb7cc3.10.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/04/workflows/7b0a2568d44e4000a46a40e26a79d6a1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=3EDHl4YmdPzf8vylk9dPuAmw2WFwvA8PWILbT2ONjQY";
     if (notificationWebhook && aprobadorEmail) {
       try {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
