@@ -183,7 +183,7 @@ export async function POST(request: Request) {
     const itemId = spResult.id;
 
     // 5. Trigger Power Automate Webhook (If configured) - Send URLs only so PA can download them
-    const webhookUrl = process.env.POWER_AUTOMATE_WEBHOOK;
+    const webhookUrl = "https://8c18912a4169ec67aa9b39bdfb7cc3.10.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/30/workflows/30d77200c1c84b80b88737b8fdd47005/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=XWps7B7fJ_7V3H-V4k3m3z6v_l9uO7x-jI_V7H_M4U0";
     if (webhookUrl && fileUrls.length > 0) {
       try {
         const payload = {
@@ -204,10 +204,12 @@ export async function POST(request: Request) {
           body: JSON.stringify(payload)
         });
         
+        console.log('Payload enviado a Power Automate (Archivos):', JSON.stringify(payload, null, 2));
+
         if (webhookRes.ok) {
           console.log('Power Automate Webhook triggered successfully!');
         } else {
-          console.error('Power Automate Webhook failed:', await webhookRes.text());
+          console.error('Power Automate Webhook failed con status:', webhookRes.status, await webhookRes.text());
         }
       } catch (webhookErr) {
         console.error('Failed to trigger webhook', webhookErr);
@@ -216,7 +218,7 @@ export async function POST(request: Request) {
 
 
     // 6. Notificar al aprobador via Power Automate
-    const notificationWebhook = process.env.POWER_AUTOMATE_NOTIFICATION_WEBHOOK || "https://8c18912a4169ec67aa9b39bdfb7cc3.10.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/04/workflows/7b0a2568d44e4000a46a40e26a79d6a1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=3EDHl4YmdPzf8vylk9dPuAmw2WFwvA8PWILbT2ONjQY";
+    const notificationWebhook = "https://8c18912a4169ec67aa9b39bdfb7cc3.10.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/04/workflows/7b0a2568d44e4000a46a40e26a79d6a1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=3EDHl4YmdPzf8vylk9dPuAmw2WFwvA8PWILbT2ONjQY";
     if (notificationWebhook && aprobadorEmail) {
       try {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -237,6 +239,8 @@ export async function POST(request: Request) {
 
         console.log('Enviando notificación al aprobador:', aprobadorEmail);
 
+        console.log('Payload de notificación:', JSON.stringify(notificationPayload, null, 2));
+
         const notifRes = await fetch(notificationWebhook, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -246,7 +250,7 @@ export async function POST(request: Request) {
         if (notifRes.ok) {
           console.log('Notificación enviada exitosamente al aprobador:', aprobadorEmail);
         } else {
-          console.error('Error enviando notificación:', await notifRes.text());
+          console.error('Error enviando notificación al aprobador, status:', notifRes.status, await notifRes.text());
         }
       } catch (notifErr) {
         console.error('Error en notificación al aprobador:', notifErr);
