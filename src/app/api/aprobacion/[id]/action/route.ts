@@ -67,7 +67,7 @@ export async function POST(
     const timestamp = new Date().toLocaleString('es-CO', {
       dateStyle: 'long', timeStyle: 'short', timeZone: 'America/Bogota',
     });
-    const estado = accion === 'aprobar' ? 'Aprovado' : 'Rechazado';
+    const estado = accion === 'aprobar' ? 'Aprobado' : 'Rechazado';
 
     const decisionText = accion === 'aprobar'
       ? `\n\n✅ APROBADO el ${timestamp}${valorAutorizado !== undefined ? ` por un valor de $${valorAutorizado}` : ''}`
@@ -125,17 +125,37 @@ export async function POST(
         if (accion === 'aprobar') {
           titulo = `Su solicitud, ${nombreCliente} fue aprobada`;
           const valFormat = valorAutorizado ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valorAutorizado) : '';
-          mensaje = `Nos complace informarle que su solicitud de devolución de saldo ha sido aprobada exitosamente${valFormat ? ` por un valor autorizado de ${valFormat}` : ''}. El pago será procesado y transferido en el perido de tiempo establecido por el area financiera.`;
+          mensaje = `Nos complace informarle que su solicitud de devolución de saldo ha sido aprobada exitosamente${valFormat ? ` por un valor autorizado de ${valFormat}` : ''}. El pago será procesado y transferido en el perido de tiempo establecido por el area financiera. Este periodo puede tardar hasta 30 días calendario.`;
         } else {
           titulo = `Su solicitud, ${nombreCliente} fue rechazada`;
           mensaje = `Le informamos que su solicitud de devolución de saldo ha sido rechazada por el siguiente motivo:\n\n"${razon}"\n\nSi tiene alguna duda o requiere mayor información, por favor póngase en contacto con nuestro equipo de cartera.`;
         }
 
+        // Obtener correo de Laura Duque del tenant
+        let lauraEmail = 'coordinacionfinanciera@firplak.com'; // fallback
+        try {
+          const usersRes = await fetch(`https://graph.microsoft.com/v1.0/users?$filter=startswith(displayName, 'Laura Isabel Duque')`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (usersRes.ok) {
+            const usersData = await usersRes.json();
+            if (usersData.value && usersData.value.length > 0 && usersData.value[0].mail) {
+              lauraEmail = usersData.value[0].mail;
+            }
+          }
+        } catch (err) {
+          console.error('Error buscando a Laura Duque en el tenant', err);
+        }
+
+        const destinatarios = solicitanteEmail ? `${solicitanteEmail};${lauraEmail}` : lauraEmail;
+
         const payload = {
           titulo,
-          solicitante: solicitanteEmail,
+          solicitante: destinatarios,
           mensaje,
         };
+
+        console.log('Enviando notificación de decisión a destinatarios:', destinatarios);
 
         const paRes = await fetch(decisionWebhook, {
           method: 'POST',
