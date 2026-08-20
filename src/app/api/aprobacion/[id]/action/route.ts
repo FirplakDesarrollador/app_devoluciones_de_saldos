@@ -166,6 +166,60 @@ export async function POST(
         if (!paRes.ok) {
           console.error('Error enviando notificación de decisión a Power Automate:', await paRes.text());
         }
+
+        // --- Enviar certificación bancaria si fue aprobado ---
+        if (accion === 'aprobar') {
+          const certificadoWebhook = process.env.POWER_AUTOMATE_CERTIFICADO_WEBHOOK;
+          if (certificadoWebhook) {
+            const certMatch = currentObservaciones.match(/certificacion:\s*(https?:\/\/[^\s]+)/);
+            const certUrl = certMatch ? certMatch[1] : null;
+            let pdfBase64 = '';
+            let nombreArchivo = 'certificacion.pdf';
+
+            if (certUrl) {
+              try {
+                const fileRes = await fetch(certUrl);
+                if (fileRes.ok) {
+                  const arrayBuffer = await fileRes.arrayBuffer();
+                  const buffer = Buffer.from(arrayBuffer);
+                  pdfBase64 = buffer.toString('base64');
+                  const urlObj = new URL(certUrl);
+                  nombreArchivo = decodeURIComponent(urlObj.pathname.split('/').pop() || 'certificacion.pdf');
+                } else {
+                  console.error('Error al descargar la certificación de Supabase:', fileRes.statusText);
+                }
+              } catch (err) {
+                console.error('Error descargando certificación:', err);
+              }
+            }
+
+            if (pdfBase64) {
+              const payloadCertificado = {
+                titulo: nombreCliente || 'Cliente',
+                contenido: `Se adjunta la certificación bancaria de ${nombreCliente}. Valor autorizado: $${valorAutorizado || 0}`,
+                nombreArchivo: nombreArchivo,
+                pdf: pdfBase64
+              };
+
+              console.log('Enviando certificación bancaria a Power Automate...');
+              const paCertRes = await fetch(certificadoWebhook, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadCertificado)
+              });
+
+              if (!paCertRes.ok) {
+                console.error('Error enviando certificación a Power Automate:', await paCertRes.text());
+              } else {
+                console.log('Certificación enviada correctamente a Power Automate.');
+              }
+            } else {
+              console.warn('No se encontró certificación o falló su descarga, por lo que no se envió a Power Automate.');
+            }
+          }
+        }
+        // --- Fin certificación bancaria ---
+
       } catch (e) {
         console.error('Error al notificar decisión:', e);
       }
