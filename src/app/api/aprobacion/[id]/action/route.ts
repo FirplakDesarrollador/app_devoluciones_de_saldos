@@ -171,8 +171,11 @@ export async function POST(
         if (accion === 'aprobar') {
           const certificadoWebhook = process.env.POWER_AUTOMATE_CERTIFICADO_WEBHOOK;
           if (certificadoWebhook) {
-            const certMatch = currentObservaciones.match(/certificacion:\s*(https?:\/\/[^\s]+)/);
-            const certUrl = certMatch ? certMatch[1] : null;
+            // Regex flexible: acepta variaciones de mayúsculas, espacios y tildes
+            console.log('[Certificación] Buscando URL en observaciones:\n', currentObservaciones);
+            const certMatch = currentObservaciones.match(/certificaci[oó]n:\s*(https?:\/\/\S+)/i);
+            const certUrl = certMatch ? certMatch[1].trim() : null;
+            console.log('[Certificación] URL encontrada:', certUrl);
             let pdfBase64 = '';
             let nombreArchivo = 'certificacion.pdf';
 
@@ -186,11 +189,13 @@ export async function POST(
                   const urlObj = new URL(certUrl);
                   nombreArchivo = decodeURIComponent(urlObj.pathname.split('/').pop() || 'certificacion.pdf');
                 } else {
-                  console.error('Error al descargar la certificación de Supabase:', fileRes.statusText);
+                  console.error('[Certificación] Error al descargar de Supabase:', fileRes.status, fileRes.statusText);
                 }
               } catch (err) {
-                console.error('Error descargando certificación:', err);
+                console.error('[Certificación] Error descargando:', err);
               }
+            } else {
+              console.warn('[Certificación] No se encontró la URL en las observaciones. Verifica el formato guardado al crear la devolución.')
             }
 
             if (pdfBase64) {

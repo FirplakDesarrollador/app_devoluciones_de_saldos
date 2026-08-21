@@ -88,6 +88,9 @@ export default function Home() {
               <Link href="/anticipos?tipo=cefi" className="w-full bg-[#3b5998] hover:bg-[#2d4373] text-white py-2.5 px-4 rounded shadow-sm text-center font-medium transition-colors">
                 CEFI
               </Link>
+              <Link href="/anticipos?tipo=viventta" className="w-full bg-[#3b5998] hover:bg-[#2d4373] text-white py-2.5 px-4 rounded shadow-sm text-center font-medium transition-colors">
+                Viventta
+              </Link>
             </div>
           </div>
         </div>

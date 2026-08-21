@@ -29,11 +29,12 @@ function AnticiposForm() {
       case 'proveedor': return 'Proveedor';
       case 'proyecto': return 'Proyecto';
       case 'cefi': return 'CEFI';
+      case 'viventta': return 'Viventta';
       default: return '';
     }
   };
 
-  const isProveedorRequired = tipo === 'proveedor' || tipo === 'proyecto' || tipo === 'cefi';
+  const isProveedorRequired = tipo === 'proveedor' || tipo === 'proyecto' || tipo === 'cefi' || tipo === 'viventta';
 
   const [formData, setFormData] = useState({
     titulo: '',
