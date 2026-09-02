@@ -105,9 +105,9 @@ export async function POST(request: Request) {
 
     if (nameLower.includes('andres naranjo') || nameLower.includes('andrés naranjo') || emailLower.includes('cartera2')) {
       spUserId = 56;
+    } else if (nameLower.includes('esteban muñoz') || nameLower.includes('esteban munoz') || emailLower.includes('analista2.desarrollo')) {
+      spUserId = 6357;
     }
-    // Esteban Muñoz Garcia - se resuelve dinámicamente por email si no tiene ID hardcodeado
-    // El bloque de resolución dinámica a continuación lo buscará automáticamente
 
     // Attempt to resolve dynamically only if it's someone else (though the UI restricts it)
     if (!spUserId && aprobadorEmail) {

@@ -169,44 +169,28 @@ export async function POST(
 
         // --- Enviar certificación bancaria si fue aprobado ---
         if (accion === 'aprobar') {
-          const certificadoWebhook = process.env.POWER_AUTOMATE_CERTIFICADO_WEBHOOK;
+          const certificadoWebhook = process.env.POWER_AUTOMATE_CERTIFICADO_WEBHOOK || 'https://8c18912a4169ec67aa9b39bdfb7cc3.10.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/00/workflows/c159bf38d23f4ca7bf38dfece31fc064/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=m85rJk83hYTrBICvjA4Mt6eScBIVh1z_PAqo651q5wk';
           if (certificadoWebhook) {
-            // Regex flexible: acepta variaciones de mayúsculas, espacios y tildes
             console.log('[Certificación] Buscando URL en observaciones:\n', currentObservaciones);
             const certMatch = currentObservaciones.match(/certificaci[oó]n:\s*(https?:\/\/\S+)/i);
             const certUrl = certMatch ? certMatch[1].trim() : null;
             console.log('[Certificación] URL encontrada:', certUrl);
-            let pdfBase64 = '';
-            let nombreArchivo = 'certificacion.pdf';
 
             if (certUrl) {
-              try {
-                const fileRes = await fetch(certUrl);
-                if (fileRes.ok) {
-                  const arrayBuffer = await fileRes.arrayBuffer();
-                  const buffer = Buffer.from(arrayBuffer);
-                  pdfBase64 = buffer.toString('base64');
-                  const urlObj = new URL(certUrl);
-                  nombreArchivo = decodeURIComponent(urlObj.pathname.split('/').pop() || 'certificacion.pdf');
-                } else {
-                  console.error('[Certificación] Error al descargar de Supabase:', fileRes.status, fileRes.statusText);
-                }
-              } catch (err) {
-                console.error('[Certificación] Error descargando:', err);
-              }
-            } else {
-              console.warn('[Certificación] No se encontró la URL en las observaciones. Verifica el formato guardado al crear la devolución.')
-            }
+              const ext = certUrl.split('?')[0].split('.').pop()?.toLowerCase() || 'pdf';
+              const nombreArchivo = `certificacion_bancaria.${ext}`;
+              const valFormat = valorAutorizado 
+                ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(valorAutorizado) 
+                : '';
 
-            if (pdfBase64) {
               const payloadCertificado = {
                 titulo: nombreCliente || 'Cliente',
-                contenido: `Se adjunta la certificación bancaria de ${nombreCliente}. Valor autorizado: $${valorAutorizado || 0}`,
+                contenido: `Se adjunta la certificación bancaria de ${nombreCliente || 'Cliente'}.${valFormat ? ` Valor autorizado: ${valFormat}` : ''}`,
                 nombreArchivo: nombreArchivo,
-                pdf: pdfBase64
+                archivoUrl: certUrl,
               };
 
-              console.log('Enviando certificación bancaria a Power Automate...');
+              console.log('[Certificación] Enviando payload a Power Automate:', JSON.stringify(payloadCertificado, null, 2));
               const paCertRes = await fetch(certificadoWebhook, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -214,12 +198,12 @@ export async function POST(
               });
 
               if (!paCertRes.ok) {
-                console.error('Error enviando certificación a Power Automate:', await paCertRes.text());
+                console.error('[Certificación] Error enviando a Power Automate:', paCertRes.status, await paCertRes.text());
               } else {
-                console.log('Certificación enviada correctamente a Power Automate.');
+                console.log('[Certificación] Certificación enviada correctamente a Power Automate.');
               }
             } else {
-              console.warn('No se encontró certificación o falló su descarga, por lo que no se envió a Power Automate.');
+              console.warn('[Certificación] No se encontró la URL de certificación en las observaciones.');
             }
           }
         }
