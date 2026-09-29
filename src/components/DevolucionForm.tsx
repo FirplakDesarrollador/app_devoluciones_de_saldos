@@ -92,6 +92,20 @@ export default function DevolucionForm({ empresa }: { empresa: string }) {
     setIsSubmitting(true);
     setSuccessMessage('');
 
+    // Validar peso total de los archivos para no superar el límite de Vercel (4.5MB)
+    let totalSize = 0;
+    if (fileCedula) totalSize += fileCedula.size;
+    if (fileCertificacion) totalSize += fileCertificacion.size;
+    if (fileSoporte) totalSize += fileSoporte.size;
+    if (fileCarta) totalSize += fileCarta.size;
+
+    const MAX_SIZE = 4.2 * 1024 * 1024; // 4.2 MB en bytes (dejamos margen para el resto del form)
+    if (totalSize > MAX_SIZE) {
+      alert(`El tamaño total de los archivos adjuntos (${(totalSize / (1024 * 1024)).toFixed(2)} MB) supera el límite permitido de 4.2 MB. Por favor, comprime los archivos e intenta nuevamente.`);
+      setIsSubmitting(false);
+      return;
+    }
+
     const formElement = e.currentTarget;
 
     try {
